@@ -38,12 +38,12 @@ public class ModelLoading implements Screen {
         Gdx.input.setInputProcessor(camController);
 
         assets = new AssetManager();
-        assets.load("Lowpoly_tree_sample.obj", Model.class);
+        assets.load("Lowpoly_tree_sample.g3db", Model.class);
         loading = true;
     }
 
     private void doneLoading() {
-        Model tree = assets.get("Lowpoly_tree_sample.obj", Model.class);
+        Model tree = assets.get("Lowpoly_tree_sample.g3db", Model.class);
         for (float x = -20f; x < 20f; x += 10f) {
             for (float z = -20f; z < 20f; z += 10f) {
                 ModelInstance instance = new ModelInstance(tree);

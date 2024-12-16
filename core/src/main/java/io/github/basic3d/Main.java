@@ -3,6 +3,7 @@ package io.github.basic3d;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import io.github.basic3d.screen.ModelLoading;
 import io.github.basic3d.screen.PlaneScreen;
 
 public class Main extends Game {
@@ -21,6 +22,6 @@ public class Main extends Game {
         cam.update();
 
         // Changes screen
-        setScreen(new PlaneScreen(this));
+        this.setScreen(new PlaneScreen(this));
     }
 }

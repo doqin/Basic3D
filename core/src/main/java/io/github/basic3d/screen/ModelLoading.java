@@ -1,49 +1,57 @@
 package io.github.basic3d.screen;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.graphics.g3d.*;
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.basic3d.Main;
 
-public class PlaneScreen implements Screen {
+public class ModelLoading implements Screen {
     public ModelBatch modelBatch;
+    public Environment environment;
     public Model model;
     public ModelInstance instance;
-    public Environment environment;
     public CameraInputController camController;
+    public AssetManager assets;
+    public Array<ModelInstance> instances = new Array<>();
+    public boolean loading;
 
     final Main game;
-    public PlaneScreen(final Main getGame) {
+    public ModelLoading(final Main getGame) {
         this.game = getGame;
 
         modelBatch = new ModelBatch();
-
-        // Creates an environment for lighting data
         environment = new Environment();
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
         environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
-        // Creates model builder used for making primitive models
-        ModelBuilder modelBuilder = new ModelBuilder();
-
-        // Creates a cyan box model
-        model = modelBuilder.createBox(5f, 5f, 5f,
-                new Material(ColorAttribute.createDiffuse(Color.CYAN)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-
-        // Makes an instance of the box model
-        instance = new ModelInstance(model);
-
+        game.cam.position.set(40f, 40f, 40f);
         camController = new CameraInputController(game.cam);
         Gdx.input.setInputProcessor(camController);
+
+        assets = new AssetManager();
+        assets.load("Lowpoly_tree_sample.obj", Model.class);
+        loading = true;
+    }
+
+    private void doneLoading() {
+        Model tree = assets.get("Lowpoly_tree_sample.obj", Model.class);
+        for (float x = -20f; x < 20f; x += 10f) {
+            for (float z = -20f; z < 20f; z += 10f) {
+                ModelInstance instance = new ModelInstance(tree);
+                instance.transform.setToTranslation(x, 0, z);
+                instances.add(instance);
+            }
+        }
+        loading = false;
     }
 
     @Override
@@ -53,19 +61,17 @@ public class PlaneScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        // Clears screen
+        if (loading && assets.update()) {
+            doneLoading();
+        }
+        camController.update();
+
         ScreenUtils.clear(1, 1, 1, 1, true);
-        game.cam.update();
 
         modelBatch.begin(game.cam);
-        modelBatch.render(instance, environment);
+        modelBatch.render(instances, environment);
         modelBatch.end();
 
-        // Change screen
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            game.setScreen(new ModelLoading(game));
-            dispose();
-        }
     }
 
     @Override
@@ -93,6 +99,11 @@ public class PlaneScreen implements Screen {
     @Override
     public void dispose() {
         modelBatch.dispose();
-        model.dispose();
+        assets.dispose();
+        instances.clear();
+        instances = null;
+        model = null;
+        instance = null;
+        environment = null;
     }
 }
